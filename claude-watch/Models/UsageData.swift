@@ -40,10 +40,21 @@ struct UsageData: Codable, Identifiable {
 struct UsageMetric: Codable {
     let utilization: Double
     let resetsAt: String
+    let tokensUsed: Int?
+    let tokenLimit: Int?
 
     enum CodingKeys: String, CodingKey {
         case utilization
         case resetsAt = "resets_at"
+        case tokensUsed = "tokens_used"
+        case tokenLimit = "token_limit"
+    }
+
+    init(utilization: Double, resetsAt: String, tokensUsed: Int? = nil, tokenLimit: Int? = nil) {
+        self.utilization = utilization
+        self.resetsAt = resetsAt
+        self.tokensUsed = tokensUsed
+        self.tokenLimit = tokenLimit
     }
 }
 
@@ -64,8 +75,8 @@ struct ExtraUsage: Codable {
 extension UsageData {
     static var placeholder: UsageData {
         UsageData(
-            fiveHour: UsageMetric(utilization: 0, resetsAt: "—"),
-            sevenDay: UsageMetric(utilization: 0, resetsAt: "—"),
+            fiveHour: UsageMetric(utilization: 0, resetsAt: "—", tokensUsed: nil, tokenLimit: nil),
+            sevenDay: UsageMetric(utilization: 0, resetsAt: "—", tokensUsed: nil, tokenLimit: nil),
             extraUsage: nil
         )
     }
