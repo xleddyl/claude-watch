@@ -1,0 +1,30 @@
+{
+   "statusLine": {
+      "type": "command",
+      "command": "bash ~/.claude/statusline-command.sh"
+   },
+   "hooks": {
+      "PreToolUse": [
+         {
+            "matcher": "",
+            "hooks": [
+               {
+                  "type": "command",
+                  "command": "bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &"
+               }
+            ]
+         }
+      ],
+      "Stop": [
+         {
+            "matcher": "",
+            "hooks": [
+               {
+                  "type": "command",
+                  "command": "bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &"
+               }
+            ]
+         }
+      ]
+   }
+}
