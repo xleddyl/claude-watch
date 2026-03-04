@@ -8,7 +8,6 @@
 
 CACHE_FILE="/tmp/.claude_usage_cache"
 TOKEN_CACHE="/tmp/.claude_token_cache"
-CREDS_FILE="$HOME/.claude/.credentials.json"
 TOKEN_TTL=900  # 15 minutes
 
 # --- get token (with 15-min cache to avoid repeated credential reads) ---
@@ -21,10 +20,11 @@ if [ -f "$TOKEN_CACHE" ]; then
 fi
 
 if [ -z "$token" ]; then
-  if [ ! -f "$CREDS_FILE" ]; then
+  creds_json=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+  if [ -z "$creds_json" ]; then
     exit 0
   fi
-  token=$(jq -r '.claudeAiOauth.accessToken // empty' "$CREDS_FILE" 2>/dev/null)
+  token=$(printf '%s' "$creds_json" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
   if [ -z "$token" ]; then
     exit 0
   fi
