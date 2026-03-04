@@ -1,5 +1,7 @@
 # claude-watch
 
+![my-minimal-claude-code-statusline-config-v0-bw0th9wf90mg1](https://github.com/user-attachments/assets/05edca4f-749a-433b-b4da-262f840e0a1c)
+
 Claude Code statusline showing model, git branch, API usage (5h/7d), and context window.
 
 ## Installation
