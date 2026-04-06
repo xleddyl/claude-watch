@@ -33,7 +33,11 @@ fi
 # --- compute_delta: given a raw ISO timestamp, returns human-readable time until reset ---
 compute_delta() {
   clean=$(echo "$1" | sed 's/\.[0-9]*//' | sed 's/[+-][0-9][0-9]:[0-9][0-9]$//' | sed 's/Z$//')
+  # macOS (BSD date): date -j -f; Linux (GNU date): date -d
   reset_epoch=$(TZ=UTC date -j -f "%Y-%m-%dT%H:%M:%S" "$clean" "+%s" 2>/dev/null)
+  if [ -z "$reset_epoch" ]; then
+    reset_epoch=$(date -u -d "${clean}Z" "+%s" 2>/dev/null)
+  fi
   if [ -z "$reset_epoch" ]; then return; fi
   now_epoch=$(date -u "+%s")
   diff=$(( reset_epoch - now_epoch ))
