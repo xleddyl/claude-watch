@@ -13,14 +13,24 @@ TOKEN_TTL=900  # 15 minutes
 # --- get token (with 15-min cache to avoid repeated credential reads) ---
 token=""
 if [ -f "$TOKEN_CACHE" ]; then
-  cache_age=$(( $(date -u +%s) - $(stat -f %m "$TOKEN_CACHE" 2>/dev/null || echo 0) ))
+  if stat -f %m "$TOKEN_CACHE" > /dev/null 2>&1; then
+    mtime=$(stat -f %m "$TOKEN_CACHE" 2>/dev/null)   # macOS
+  else
+    mtime=$(stat -c %Y "$TOKEN_CACHE" 2>/dev/null)   # Linux
+  fi
+  cache_age=$(( $(date -u +%s) - ${mtime:-0} ))
   if [ "$cache_age" -lt "$TOKEN_TTL" ]; then
     token=$(cat "$TOKEN_CACHE" 2>/dev/null)
   fi
 fi
 
 if [ -z "$token" ]; then
-  creds_json=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+  # macOS: read from Keychain; Linux: read from credentials file
+  if command -v security > /dev/null 2>&1; then
+    creds_json=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+  else
+    creds_json=$(cat "$HOME/.claude/.credentials.json" 2>/dev/null)
+  fi
   if [ -z "$creds_json" ]; then
     exit 0
   fi
