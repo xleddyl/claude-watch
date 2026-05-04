@@ -14,7 +14,14 @@ OAUTH_ENDPOINT="https://api.anthropic.com/v1/oauth/token"
 USAGE_ENDPOINT="https://api.anthropic.com/oauth/usage"
 
 get_creds_json() {
-  security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null
+  _raw=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+  [ -z "$_raw" ] && return 1
+  _decoded=$(printf '%s' "$_raw" | xxd -r -p 2>/dev/null)
+  if printf '%s' "$_decoded" | jq empty 2>/dev/null; then
+    printf '%s' "$_decoded"
+  else
+    printf '%s' "$_raw"
+  fi
 }
 
 refresh_access_token() {
@@ -42,8 +49,9 @@ refresh_access_token() {
     '.claudeAiOauth.accessToken = $at | .claudeAiOauth.refreshToken = $rt | .claudeAiOauth.expiresAt = $ea' 2>/dev/null)
 
   if [ -n "$_updated" ]; then
+    _hex=$(printf '%s' "$_updated" | xxd -p | tr -d '\n')
     security delete-generic-password -s "Claude Code-credentials" >/dev/null 2>&1
-    security add-generic-password -s "Claude Code-credentials" -a "" -w "$_updated" 2>/dev/null
+    security add-generic-password -s "Claude Code-credentials" -a "" -w "$_hex" 2>/dev/null
   fi
 
   printf '%s' "$_new_access"
