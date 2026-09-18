@@ -1,6 +1,11 @@
 #!/bin/sh
 input=$(cat)
 
+in_container=""
+if [ -f /.dockerenv ] || [ -n "$REMOTE_CONTAINERS" ]; then
+  in_container="1"
+fi
+
 # --- model ---
 model=$(echo "$input" | jq -r '.model.display_name // ""')
 
@@ -48,6 +53,7 @@ fi
 compute_delta() {
   clean=$(echo "$1" | sed 's/\.[0-9]*//' | sed 's/[+-][0-9][0-9]:[0-9][0-9]$//' | sed 's/Z$//')
   reset_epoch=$(TZ=UTC date -j -f "%Y-%m-%dT%H:%M:%S" "$clean" "+%s" 2>/dev/null)
+  [ -z "$reset_epoch" ] && reset_epoch=$(TZ=UTC date -d "${clean%%T*} ${clean#*T}" "+%s" 2>/dev/null)
   if [ -z "$reset_epoch" ]; then return; fi
   now_epoch=$(date -u "+%s")
   diff=$(( reset_epoch - now_epoch ))
@@ -84,6 +90,10 @@ fi
 SEP="\033[90m • \033[0m"
 
 # line 1: model | folder • branch
+if [ -n "$in_container" ]; then
+  printf "\033[1m\033[38;2;97;175;239m⬢ container\033[22m\033[0m"
+  printf "\033[90m | \033[0m"
+fi
 printf "\033[38;5;208m\033[1m%s\033[22m\033[0m" "$model"
 printf "\033[90m | \033[0m"
 printf "\033[1m\033[38;2;76;208;222m%s\033[22m\033[0m" "$dir_name"
